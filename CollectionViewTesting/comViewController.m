@@ -27,20 +27,22 @@ typedef void (^Callback)();
     NSMutableDictionary     *lapseDict;
     UIActivityIndicatorView *refreshIndicator;
     NSMutableArray          *userData;
+    UIRefreshControl        *refresh;
 }
 
 
 
-- (UIActivityIndicatorView *) createRefreshView {
 
-    refreshIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-    refreshIndicator.hidesWhenStopped = YES;
+
+- (void) addActivityIndicatorToContext:(UIView *)context {
+    UIActivityIndicatorView *indicator;
+    indicator                   = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    indicator.hidesWhenStopped  = YES;
+    indicator.center            = context.center;
     
-    refreshIndicator.center = self.view.center;
-    
-    return refreshIndicator;
-    
+    [context addSubview:indicator];
 }
+
 
 -(void)fetchUserDataFromUrl:(NSURL *)url thenFinish:(JSONCompletionBlock)complete {
     
@@ -75,7 +77,7 @@ typedef void (^Callback)();
 
 
 - (void) setupLapseArrayAndContinue:(JSONCompletionBlock)complete {
-    array = [[NSMutableArray alloc] init];
+    array                               = [[NSMutableArray alloc] init];
     
     refreshIndicator                    = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
     refreshIndicator.hidesWhenStopped   = YES;
@@ -85,13 +87,10 @@ typedef void (^Callback)();
     
     NSURL *userInfoUrl = [NSURL URLWithString:@"http://api.randomuser.me/?results=20"];
     
-    //[self testJsonWithTwitter];
-    
     [refreshIndicator startAnimating];
     
     [self fetchUserDataFromUrl:userInfoUrl thenFinish:^(NSMutableArray *data){
         
-        //userData = [data objectForKey:@"results"];
         // add 5 'lapses' into the array
         for (int i = 0; i < [data count]; i++) {
             lapseDict = [[NSMutableDictionary alloc] init];
@@ -113,6 +112,15 @@ typedef void (^Callback)();
 
 }
 
+- (void)reloadData {
+    [self setupLapseArrayAndContinue:^(NSArray *data){
+        
+        [refreshIndicator stopAnimating];
+        [refresh endRefreshing];
+        [self.collectionView reloadData];
+        
+    }];
+}
 
 
 - (void)viewDidLoad
@@ -120,29 +128,11 @@ typedef void (^Callback)();
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
     
-    [self setupLapseArrayAndContinue:^(NSArray *data){
-        
-        [refreshIndicator stopAnimating];
-        [self.collectionView reloadData];
-        
-    }];
-    
-}
-
-
--(void) doPreloadAllImages: (NSMutableArray *)arr {
-    
-    
-    for (int i = 0; i < [arr count]; i++) {
-        lapseDict = [arr objectAtIndex:i];
-        
-        [self fetchImageWithURL:[lapseDict objectForKey:@"user_avatar"] completionBlock:^(UIImage *image){
-            [lapseDict setValue:image forKey:@"user_avatar"];
-        }];
-        
-    }
-    
-    
+    refresh = [[UIRefreshControl alloc] init];
+    [refresh addTarget:self.collectionView action:@selector(reloadData) forControlEvents:UIControlEventValueChanged];
+    [self.collectionView addSubview:refresh];
+    //[self.collectionView]
+    [self reloadData];
     
 }
 
@@ -170,13 +160,16 @@ typedef void (^Callback)();
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
         UIImage *thumbImage = nil;
-        
         // make images twice the size of their containers, for retina screen whatever
-        CGSize newSize = CGSizeMake(width, (width / image.size.width) * image.size.height);
+        CGSize newSize      = CGSizeMake(width, (width / image.size.width) * image.size.height);
+        
         
         UIGraphicsBeginImageContext(newSize);
+        
         [image drawInRect:CGRectMake(0, 0, newSize.width, newSize.height)];
+        
         thumbImage = UIGraphicsGetImageFromCurrentImageContext();
+        
         UIGraphicsEndImageContext();
         
         completionBlock(thumbImage);
@@ -209,8 +202,8 @@ typedef void (^Callback)();
     UIImageView *lapse      = (UIImageView *)[cell viewWithTag:500];
     
     // nillify the images to prevent flickering or some bullshit.
-    lapse.image     = nil;
-    avatar.image    = nil;
+    lapse.image             = nil;
+    avatar.image            = nil;
     
     
     
@@ -223,8 +216,8 @@ typedef void (^Callback)();
     [lapse addSubview:indicator];
     
     
-    avatar.layer.cornerRadius = 22.0f;
-    avatar.clipsToBounds = YES;
+    avatar.layer.cornerRadius   = 22.0f;
+    avatar.clipsToBounds        = YES;
     
     
     
@@ -304,20 +297,19 @@ typedef void (^Callback)();
     selectedLapseIndex = indexPath.row;
 }
 
-- (void)didReceiveMemoryWarning
-{
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    
     // Get the new view controller using [segue destinationViewController].
     SingleLapseViewController *pvc = [segue destinationViewController];
     NSIndexPath *selected = [self.collectionView indexPathForCell:sender];
     
     
     pvc.currentLapse = [array objectAtIndex:selected.item];
-    // [pvc setCurrentPhoto:
 }
 
 @end
