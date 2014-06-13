@@ -21,6 +21,7 @@
 		D381DEB8194864A10085ACF0 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D381DE9A194864A00085ACF0 /* UIKit.framework */; };
 		D381DEC0194864A10085ACF0 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D381DEBE194864A10085ACF0 /* InfoPlist.strings */; };
 		D381DEC2194864A10085ACF0 /* CollectionViewTestingTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D381DEC1194864A10085ACF0 /* CollectionViewTestingTests.m */; };
+		D3F177EB194ADC1C00A4A021 /* SingleLapseViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D3F177EA194ADC1C00A4A021 /* SingleLapseViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,6 +54,8 @@
 		D381DEBD194864A10085ACF0 /* CollectionViewTestingTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "CollectionViewTestingTests-Info.plist"; sourceTree = "<group>"; };
 		D381DEBF194864A10085ACF0 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		D381DEC1194864A10085ACF0 /* CollectionViewTestingTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CollectionViewTestingTests.m; sourceTree = "<group>"; };
+		D3F177E9194ADC1C00A4A021 /* SingleLapseViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SingleLapseViewController.h; sourceTree = "<group>"; };
+		D3F177EA194ADC1C00A4A021 /* SingleLapseViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SingleLapseViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +118,8 @@
 				D381DEA5194864A00085ACF0 /* comAppDelegate.h */,
 				D381DEA6194864A00085ACF0 /* comAppDelegate.m */,
 				D381DEA8194864A10085ACF0 /* Main.storyboard */,
+				D3F177E9194ADC1C00A4A021 /* SingleLapseViewController.h */,
+				D3F177EA194ADC1C00A4A021 /* SingleLapseViewController.m */,
 				D381DEAB194864A10085ACF0 /* comViewController.h */,
 				D381DEAC194864A10085ACF0 /* comViewController.m */,
 				D381DEAE194864A10085ACF0 /* Images.xcassets */,
@@ -250,6 +255,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3F177EB194ADC1C00A4A021 /* SingleLapseViewController.m in Sources */,
 				D381DEAD194864A10085ACF0 /* comViewController.m in Sources */,
 				D381DEA7194864A00085ACF0 /* comAppDelegate.m in Sources */,
 				D381DEA3194864A00085ACF0 /* main.m in Sources */,
@@ -461,6 +467,7 @@
 				D381DEC7194864A10085ACF0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		D381DEC8194864A10085ACF0 /* Build configuration list for PBXNativeTarget "CollectionViewTestingTests" */ = {
 			isa = XCConfigurationList;
@@ -469,6 +476,7 @@
 				D381DECA194864A10085ACF0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

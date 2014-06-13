@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "SingleLapseViewController.h"
 
 @interface comViewController : UIViewController <UICollectionViewDataSource, UICollectionViewDelegate>
 

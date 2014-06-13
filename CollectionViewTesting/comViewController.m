@@ -23,6 +23,7 @@ typedef void (^Callback)();
 
 @implementation comViewController {
     NSMutableArray          *array;
+    NSInteger               selectedLapseIndex;
     NSMutableDictionary     *lapseDict;
     UIActivityIndicatorView *refreshIndicator;
     NSMutableArray          *userData;
@@ -228,20 +229,31 @@ typedef void (^Callback)();
     
     
     
-    
+    // if the 'lapse_image' object is a string, this means it's a url string
+    // so load the image using the nifty function
     if ([[row objectForKey:@"lapse_image"] isKindOfClass:[NSString class]]) {
         
+        // like a record baby
         [indicator startAnimating];
         
         NSURL *lapseUrl = [NSURL URLWithString:[row objectForKey:@"lapse_image"]];
         
+        
         [self fetchImageWithURL:lapseUrl completionBlock:^(UIImage *image){
-            
+            // once the image is fetched and delivered in a nice fancy block
+            // resize it to the bounds of the image view to save memory
+            // because we need all the memory for reasons.
             [self resizeImage:image toWidth:lapse.frame.size.width completionBlock:^(UIImage *image) {
                 dispatch_async(dispatch_get_main_queue(), ^{
                     
+                    // set the value of 'lapse_image' to the newfangled image object
+                    // so we dont have to do all the resizing shit all over again.
                     [row setValue:image forKey:@"lapse_image"];
+                    
+                    // main queue time, set the image to the image object
                     lapse.image = image;
+                    
+                    // *record screech*
                     [indicator stopAnimating];
                     
                 });
@@ -250,11 +262,15 @@ typedef void (^Callback)();
             
         }];
     } else {
-        
+        // if the object is in fact an image, just use that without doing anything
+        // since all the work has been done already (probably)
         lapse.image = [row objectForKey:@"lapse_image"];
     }
 
     
+    // it's the same as all that nonsense above really,
+    // not a whole lot is different
+    // check them object keys tho.
     if([[row objectForKey:@"user_avatar"] isKindOfClass:[NSString class]] ) {
         
         NSURL *avatarUrl = [NSURL URLWithString:[row objectForKey:@"user_avatar"]];
@@ -284,10 +300,24 @@ typedef void (^Callback)();
     return cell;
 }
 
+- (void) collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    selectedLapseIndex = indexPath.row;
+}
+
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+-(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    SingleLapseViewController *pvc = [segue destinationViewController];
+    NSIndexPath *selected = [self.collectionView indexPathForCell:sender];
+    
+    
+    pvc.currentLapse = [array objectAtIndex:selected.item];
+    // [pvc setCurrentPhoto:
 }
 
 @end
