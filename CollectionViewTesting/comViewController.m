@@ -98,7 +98,7 @@ typedef void (^Callback)();
             NSMutableDictionary *user = [data objectAtIndex:i];
             
             [lapseDict setObject:@"99y ago" forKey:@"timeago"];
-            [lapseDict setObject:@"http://cageme.herokuapp.com/620/620" forKey:@"lapse_image"];
+            [lapseDict setObject:@"http://cageme.herokuapp.com/620/1136" forKey:@"lapse_image"];
             [lapseDict setObject:[user objectForKey:@"picture"] forKey:@"user_avatar"];
             [lapseDict setObject:[user objectForKey:@"username"] forKey:@"user_name"];
             [lapseDict setObject:[user objectForKey:@"password"] forKey:@"lapse_title"];
@@ -172,7 +172,7 @@ typedef void (^Callback)();
         UIImage *thumbImage = nil;
         
         // make images twice the size of their containers, for retina screen whatever
-        CGSize newSize = CGSizeMake(width, ((width / image.size.width) * image.size.height) * 2);
+        CGSize newSize = CGSizeMake(width, (width / image.size.width) * image.size.height);
         
         UIGraphicsBeginImageContext(newSize);
         [image drawInRect:CGRectMake(0, 0, newSize.width, newSize.height)];
