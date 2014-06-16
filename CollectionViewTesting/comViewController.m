@@ -45,7 +45,7 @@ typedef void (^Callback)();
 
 
 -(void)fetchUserDataFromUrl:(NSURL *)url thenFinish:(JSONCompletionBlock)complete {
-    
+    NSLog(@"Fetching user data");
     [NSURLConnection sendAsynchronousRequest:[[NSURLRequest alloc] initWithURL:url] queue:[[NSOperationQueue alloc] init] completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
         
         if (error) {
@@ -67,6 +67,8 @@ typedef void (^Callback)();
                 
                 [userData addObject:user];
             }
+			
+			NSLog(@"got some user data");
             
             complete(userData);
             
@@ -79,15 +81,10 @@ typedef void (^Callback)();
 - (void) setupLapseArrayAndContinue:(JSONCompletionBlock)complete {
     array                               = [[NSMutableArray alloc] init];
     
-    refreshIndicator                    = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-    refreshIndicator.hidesWhenStopped   = YES;
-    refreshIndicator.center             = self.view.center;
     
-    [self.view addSubview:refreshIndicator];
     
     NSURL *userInfoUrl = [NSURL URLWithString:@"http://api.randomuser.me/?results=20"];
     
-    [refreshIndicator startAnimating];
     
     [self fetchUserDataFromUrl:userInfoUrl thenFinish:^(NSMutableArray *data){
         
@@ -101,6 +98,7 @@ typedef void (^Callback)();
             [lapseDict setObject:[user objectForKey:@"picture"] forKey:@"user_avatar"];
             [lapseDict setObject:[user objectForKey:@"username"] forKey:@"user_name"];
             [lapseDict setObject:[user objectForKey:@"password"] forKey:@"lapse_title"];
+			[lapseDict setValue:[NSNumber numberWithBool:NO] forKey:@"liked"];
             
             
             [array addObject:lapseDict];
@@ -112,9 +110,11 @@ typedef void (^Callback)();
 
 }
 
-- (void)reloadData {
+- (void)reloadContent {
+	NSLog(@"Reload Data");
+	
     [self setupLapseArrayAndContinue:^(NSArray *data){
-        
+        NSLog(@"Reloading finished");
         [refreshIndicator stopAnimating];
         [refresh endRefreshing];
         [self.collectionView reloadData];
@@ -128,11 +128,19 @@ typedef void (^Callback)();
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
     
+	refreshIndicator                    = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    refreshIndicator.hidesWhenStopped   = YES;
+    refreshIndicator.center             = self.view.center;
+	
+    [refreshIndicator startAnimating];
+    
+    [self.view addSubview:refreshIndicator];
+	
     refresh = [[UIRefreshControl alloc] init];
-    [refresh addTarget:self.collectionView action:@selector(reloadData) forControlEvents:UIControlEventValueChanged];
+    [refresh addTarget:self action:@selector(reloadContent) forControlEvents:UIControlEventValueChanged];
     [self.collectionView addSubview:refresh];
     //[self.collectionView]
-    [self reloadData];
+    [self reloadContent];
     
 }
 
@@ -188,6 +196,27 @@ typedef void (^Callback)();
 }
 
 
+-(IBAction)likeLapse:(id)sender {
+	UIButton *button = (UIButton *)sender;
+	int tag						= [(UIButton *)sender tag];
+	NSMutableDictionary *lapse	= [array objectAtIndex:tag];
+	UIImage *iconFilledHeart	= [UIImage imageNamed:@"heart-filled.png"];
+	UIImage *iconEmptyHeart		= [UIImage imageNamed:@"heart-outline.png"];
+	
+    NSLog(@"tapped button in cell at row %i", tag);
+	NSLog(@"lapse name: %@", [lapse objectForKey:@"lapse_title"]);
+	
+	if(lapse[@"liked"] == [NSNumber numberWithBool:NO]) {
+		[button setImage:iconFilledHeart forState:UIControlStateNormal];
+		[lapse setValue:[NSNumber numberWithBool:YES] forKey:@"liked"];
+		
+	} else {
+		[button setImage:iconEmptyHeart forState:UIControlStateNormal];
+		[lapse setValue:[NSNumber numberWithBool:NO] forKey:@"liked"];
+	}
+	NSLog(@"lapse liked?: %@", lapse[@"liked"]);
+}
+
 
 -(UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     
@@ -200,7 +229,10 @@ typedef void (^Callback)();
     UILabel *title          = (UILabel *)[cell viewWithTag:300];
     UIImageView *avatar     = (UIImageView *)[cell viewWithTag:400];
     UIImageView *lapse      = (UIImageView *)[cell viewWithTag:500];
-    
+	UIButton *likeButton	= (UIButton *)[cell viewWithTag:600];
+	
+    UIImage *iconFilledHeart	= [UIImage imageNamed:@"heart-filled.png"];
+	
     // nillify the images to prevent flickering or some bullshit.
     lapse.image             = nil;
     avatar.image            = nil;
@@ -284,11 +316,22 @@ typedef void (^Callback)();
     
     
     
-    
+    if([row objectForKey:@"liked"] == [NSNumber numberWithBool:YES]) {
+		[likeButton setImage:iconFilledHeart forState:UIControlStateNormal];
+	}
     
     timeago.text    = [row objectForKey:@"timeago"];
     username.text   = [row objectForKey:@"user_name"];
     title.text      = [row objectForKey:@"lapse_title"];
+	
+	
+	
+	//UIImage *heartIcon = [UIImage imageNamed:@"heart-outline.png"];
+	likeButton.tag = indexPath.row;
+	
+	[likeButton addTarget:self action:@selector(likeLapse:) forControlEvents:(UIControlEvents)UIControlEventTouchUpInside];
+	
+	
     
     return cell;
 }
