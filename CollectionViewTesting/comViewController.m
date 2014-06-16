@@ -28,6 +28,8 @@ typedef void (^Callback)();
     UIActivityIndicatorView *refreshIndicator;
     NSMutableArray          *userData;
     UIRefreshControl        *refresh;
+	UIImage *iconFilledHeart;
+	UIImage *iconEmptyHeart;
 }
 
 
@@ -128,6 +130,11 @@ typedef void (^Callback)();
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
     
+	iconFilledHeart	= [UIImage imageNamed:@"heart-filled.png"];
+	iconEmptyHeart	= [UIImage imageNamed:@"heart-outline.png"];
+	
+	
+	
 	refreshIndicator                    = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
     refreshIndicator.hidesWhenStopped   = YES;
     refreshIndicator.center             = self.view.center;
@@ -197,13 +204,12 @@ typedef void (^Callback)();
 
 
 -(IBAction)likeLapse:(id)sender {
-	UIButton *button = (UIButton *)sender;
-	int tag						= [(UIButton *)sender tag];
-	NSMutableDictionary *lapse	= [array objectAtIndex:tag];
-	UIImage *iconFilledHeart	= [UIImage imageNamed:@"heart-filled.png"];
-	UIImage *iconEmptyHeart		= [UIImage imageNamed:@"heart-outline.png"];
+	UIButton *button			= (UIButton *)sender;
+	CGPoint hitPoint			= [sender convertPoint:CGPointZero toView:self.collectionView];
+	NSIndexPath *hitIndex		= [self.collectionView indexPathForItemAtPoint:hitPoint];
 	
-    NSLog(@"tapped button in cell at row %i", tag);
+	NSMutableDictionary *lapse	= [array objectAtIndex:hitIndex.row];
+    NSLog(@"tapped button in cell at row %i", hitIndex.row);
 	NSLog(@"lapse name: %@", [lapse objectForKey:@"lapse_title"]);
 	
 	if(lapse[@"liked"] == [NSNumber numberWithBool:NO]) {
@@ -231,8 +237,6 @@ typedef void (^Callback)();
     UIImageView *lapse      = (UIImageView *)[cell viewWithTag:500];
 	UIButton *likeButton	= (UIButton *)[cell viewWithTag:600];
 	
-    UIImage *iconFilledHeart	= [UIImage imageNamed:@"heart-filled.png"];
-	
     // nillify the images to prevent flickering or some bullshit.
     lapse.image             = nil;
     avatar.image            = nil;
@@ -250,8 +254,21 @@ typedef void (^Callback)();
     
     avatar.layer.cornerRadius   = 22.0f;
     avatar.clipsToBounds        = YES;
+	
+	// set like button to default image
+    [likeButton setImage:nil forState:UIControlStateNormal];
+	NSLog(@"Is lapse still liked? %@", [row objectForKey:@"liked"] == [NSNumber numberWithBool:YES] ? @"Yes" : @"No");
+    if([row objectForKey:@"liked"] == [NSNumber numberWithBool:YES]) {
+		NSLog(@"liked lapse restorified");
+		[likeButton setImage:iconFilledHeart forState:UIControlStateNormal];
+	} else {
+		NSLog(@"use empty heart");
+		[likeButton setImage:iconEmptyHeart forState:UIControlStateNormal];
+	}
     
-    
+    timeago.text    = [row objectForKey:@"timeago"];
+    username.text   = [row objectForKey:@"user_name"];
+    title.text      = [row objectForKey:@"lapse_title"];
     
     
     // if the 'lapse_image' object is a string, this means it's a url string
@@ -315,19 +332,12 @@ typedef void (^Callback)();
     
     
     
-    
-    if([row objectForKey:@"liked"] == [NSNumber numberWithBool:YES]) {
-		[likeButton setImage:iconFilledHeart forState:UIControlStateNormal];
-	}
-    
-    timeago.text    = [row objectForKey:@"timeago"];
-    username.text   = [row objectForKey:@"user_name"];
-    title.text      = [row objectForKey:@"lapse_title"];
+   
 	
 	
 	
 	//UIImage *heartIcon = [UIImage imageNamed:@"heart-outline.png"];
-	likeButton.tag = indexPath.row;
+	//likeButton.tag = indexPath.row;
 	
 	[likeButton addTarget:self action:@selector(likeLapse:) forControlEvents:(UIControlEvents)UIControlEventTouchUpInside];
 	
