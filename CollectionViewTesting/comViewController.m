@@ -7,6 +7,7 @@
 //
 
 #import <QuartzCore/QuartzCore.h>
+#include <stdlib.h>
 #import "comViewController.h"
 
 
@@ -81,7 +82,6 @@ typedef void (^Callback)();
 
 
 - (void) setupLapseArrayAndContinue:(JSONCompletionBlock)complete {
-    array                               = [[NSMutableArray alloc] init];
     
     
     
@@ -94,6 +94,8 @@ typedef void (^Callback)();
         for (int i = 0; i < [data count]; i++) {
             lapseDict = [[NSMutableDictionary alloc] init];
             NSMutableDictionary *user = [data objectAtIndex:i];
+			unsigned int numLikes = arc4random_uniform(10000);
+			
             
             [lapseDict setObject:@"99y ago" forKey:@"timeago"];
             [lapseDict setObject:@"http://cageme.herokuapp.com/620/1136" forKey:@"lapse_image"];
@@ -101,6 +103,7 @@ typedef void (^Callback)();
             [lapseDict setObject:[user objectForKey:@"username"] forKey:@"user_name"];
             [lapseDict setObject:[user objectForKey:@"password"] forKey:@"lapse_title"];
 			[lapseDict setValue:[NSNumber numberWithBool:NO] forKey:@"liked"];
+			[lapseDict setValue:[NSNumber numberWithInt:numLikes] forKey:@"liked_count"];
             
             
             [array addObject:lapseDict];
@@ -112,7 +115,7 @@ typedef void (^Callback)();
 
 }
 
-- (void)reloadContent {
+- (void)loadNewData {
 	NSLog(@"Reload Data");
 	
     [self setupLapseArrayAndContinue:^(NSArray *data){
@@ -125,11 +128,19 @@ typedef void (^Callback)();
 }
 
 
+- (void)reloadContent {
+	array = [[NSMutableArray alloc] init];
+	[self loadNewData];
+	
+}
+
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
     
+    array           = [[NSMutableArray alloc] init];
 	iconFilledHeart	= [UIImage imageNamed:@"heart-filled.png"];
 	iconEmptyHeart	= [UIImage imageNamed:@"heart-outline.png"];
 	
@@ -207,21 +218,31 @@ typedef void (^Callback)();
 	UIButton *button			= (UIButton *)sender;
 	CGPoint hitPoint			= [sender convertPoint:CGPointZero toView:self.collectionView];
 	NSIndexPath *hitIndex		= [self.collectionView indexPathForItemAtPoint:hitPoint];
-	
 	NSMutableDictionary *lapse	= [array objectAtIndex:hitIndex.row];
-    NSLog(@"tapped button in cell at row %i", hitIndex.row);
-	NSLog(@"lapse name: %@", [lapse objectForKey:@"lapse_title"]);
+	NSInteger numLikes			= [[lapse valueForKey:@"liked_count"] integerValue];
+	NSArray *indexPaths			= [[NSArray alloc] initWithObjects:hitIndex, nil];
+	
+	
+	NSLog(@"Num likes: %i %i", numLikes, numLikes-1);
 	
 	if(lapse[@"liked"] == [NSNumber numberWithBool:NO]) {
-		[button setImage:iconFilledHeart forState:UIControlStateNormal];
+		//[button setImage:iconFilledHeart forState:UIControlStateNormal];
 		[lapse setValue:[NSNumber numberWithBool:YES] forKey:@"liked"];
+		[lapse setValue:[NSNumber numberWithInt:numLikes+1] forKey:@"liked_count"];
+		
 		
 	} else {
-		[button setImage:iconEmptyHeart forState:UIControlStateNormal];
+		//[button setImage:iconEmptyHeart forState:UIControlStateNormal];
 		[lapse setValue:[NSNumber numberWithBool:NO] forKey:@"liked"];
+		[lapse setValue:[NSNumber numberWithInt:numLikes-1] forKey:@"liked_count"];
 	}
-	NSLog(@"lapse liked?: %@", lapse[@"liked"]);
+	
+	NSLog(@"Number of likes: %i", [lapse[@"liked_count"] integerValue]);
+	
+	[self.collectionView reloadItemsAtIndexPaths:indexPaths];
 }
+
+
 
 
 -(UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
@@ -236,11 +257,28 @@ typedef void (^Callback)();
     UIImageView *avatar     = (UIImageView *)[cell viewWithTag:400];
     UIImageView *lapse      = (UIImageView *)[cell viewWithTag:500];
 	UIButton *likeButton	= (UIButton *)[cell viewWithTag:600];
+	UILabel *likeCount		= (UILabel *)[cell viewWithTag:700];
 	
     // nillify the images to prevent flickering or some bullshit.
     lapse.image             = nil;
     avatar.image            = nil;
-    
+	
+	NSInteger likeCountVal = [[row objectForKey:@"liked_count"] integerValue];
+    NSString *likeCountFormatted;
+
+	if(likeCountVal >= 1000) {
+		likeCountFormatted = [NSString stringWithFormat:@"%ik", (int) floor(likeCountVal/1000)];
+	} else {
+		likeCountFormatted = [NSString stringWithFormat:@"%i", likeCountVal];
+	}
+	
+	
+	likeCount.text = likeCountFormatted;
+	
+	if(indexPath.row == [array count] - 1) {
+		NSLog(@"end of scroll");
+		[self loadNewData];
+	}
     
     
     UIActivityIndicatorView *indicator;
